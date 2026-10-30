@@ -16,4 +16,6 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/.output/public /usr/share/nginx/html/simplewiki
 
 EXPOSE 80
-HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://127.0.0.1/simplewiki/ >/dev/null || exit 1
+# Start period covers nginx boot; grep rejects an empty body so a contentless 200 is unhealthy.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget -q -T 3 -O - http://127.0.0.1/simplewiki/ | grep -q . || exit 1
