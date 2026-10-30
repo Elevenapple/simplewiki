@@ -37,6 +37,10 @@ export default defineNuxtConfig({
   experimental: {
     asyncContext: true,
   },
+  site: {
+    // Public origin of the GitHub Pages site. Needed so nuxt-og-image can prerender absolute og:image URLs.
+    url: "https://elevenapple.github.io",
+  },
   app: {
     baseURL: "/simplewiki/", // Change this to your desired base URL, or remove it if you want to serve from the root.
     cdnURL: "/simplewiki/", // Change this to your desired CDN URL, or remove it if you want to serve from the root.
