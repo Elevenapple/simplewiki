@@ -4,10 +4,13 @@ services:
     image: simplewiki:latest
     ports:
       - "8080:80"
+    depends_on:
+      - plantuml
     restart: unless-stopped
 
-  # Local PlantUML renderer. The browser calls this directly, so the port must be
-  # published on the host and match VITE_PLANTUML_SERVER (default http://localhost:8081).
+  # Local PlantUML renderer. The built site reaches it same-origin via the nginx
+  # /plantuml/ proxy; the published 8081 port is only for `bun run dev`, whose
+  # default renderer URL is http://localhost:8081.
   plantuml:
     image: plantuml/plantuml-server:jetty
     ports:

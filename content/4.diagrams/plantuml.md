@@ -16,6 +16,16 @@ Diagrams are rendered directly from the PlantUML source.
 
 ---
 
+## Rendering Server
+
+Unlike Mermaid, PlantUML diagrams are rendered by a PlantUML server, not in the browser. By default this wiki uses a **local** server so your diagram text never leaves your machine:
+
+- **Docker**: `docker compose up` starts a bundled PlantUML server alongside the wiki; diagrams are rendered through it automatically.
+- **Local development** (`bun run dev`): start the renderer first with `docker compose up -d plantuml` — otherwise diagram blocks show a render error while the rest of the site works normally.
+- **Other deployments** (e.g. GitHub Pages): set `VITE_PLANTUML_SERVER` at build time to a PlantUML server your readers can reach. See `.env.example` — note that whichever server you choose receives the full text of every diagram.
+
+---
+
 ## Basic Usage
 
 Place your PlantUML diagram inside a `plantuml` code block.

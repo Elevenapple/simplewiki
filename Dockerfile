@@ -9,6 +9,11 @@ RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --ignore-scripts
 
 COPY . .
+# Same-origin path that nginx proxies to the plantuml service (see nginx.conf), so the
+# built site renders diagrams from whatever host it is browsed on. Vite inlines this at
+# build time; override with --build-arg to use a different PlantUML server.
+ARG VITE_PLANTUML_SERVER=/plantuml
+ENV VITE_PLANTUML_SERVER=$VITE_PLANTUML_SERVER
 RUN bunx nuxt prepare && bun run generate
 
 FROM nginx:alpine AS runtime
