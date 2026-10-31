@@ -59,9 +59,12 @@ async function encodePlantuml(source: string): Promise<string> {
     return encodePlantumlBytes(merged)
 }
 
+// Defaults to a locally run PlantUML server so diagram source never leaves this machine.
+// The encoded source travels in the URL path, so a remote server records every diagram verbatim.
+// Set VITE_PLANTUML_SERVER at build time to point elsewhere, e.g. https://www.plantuml.com/plantuml.
 const SERVER =
     (import.meta.env?.VITE_PLANTUML_SERVER as string | undefined) ??
-    'https://www.plantuml.com/plantuml'
+    'http://localhost:8081'
 
 
 export async function plantumlSvgUrl(source: string): Promise<string> {

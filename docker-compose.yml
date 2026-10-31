@@ -5,3 +5,11 @@ services:
     ports:
       - "8080:80"
     restart: unless-stopped
+
+  # Local PlantUML renderer. The browser calls this directly, so the port must be
+  # published on the host and match VITE_PLANTUML_SERVER (default http://localhost:8081).
+  plantuml:
+    image: plantuml/plantuml-server:jetty
+    ports:
+      - "8081:8080"
+    restart: unless-stopped
