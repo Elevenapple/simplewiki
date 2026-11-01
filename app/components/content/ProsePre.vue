@@ -2,20 +2,23 @@
 defineOptions({ inheritAttrs: false })
 
 const props = defineProps<{
+  code?: string
   filename?: string
   language?: string
 }>()
 
 const isMermaid  = props.language === 'mermaid'
 const isPlantUML = props.language === 'plantuml' || props.language === 'puml'
-const isDiagram  = isMermaid || isPlantUML
 </script>
 
 <template>
-  <ClientOnly v-if="isDiagram">
-    <MermaidDiagram  v-if="isMermaid"><slot /></MermaidDiagram>
-    <PlantumlDiagram v-else><slot /></PlantumlDiagram>
+  <!-- Mermaid renders in the browser; PlantUML renders during prerender when it can,
+       so it must not be confined to the client. -->
+  <ClientOnly v-if="isMermaid">
+    <MermaidDiagram><slot /></MermaidDiagram>
   </ClientOnly>
+
+  <PlantumlDiagram v-else-if="isPlantUML" :code="code"><slot /></PlantumlDiagram>
 
   <div v-else class="code-wrapper">
     <div v-if="filename" class="code-header">

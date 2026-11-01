@@ -1,19 +1,44 @@
 <script lang="ts" setup>
 import {computed, nextTick, onMounted, ref} from 'vue'
-import {renderPlantuml} from '~/util/plantumlRenderer.ts'
+import {canRenderAtBuildTime, renderPlantuml} from '~/util/plantumlRenderer.ts'
+
+// Nuxt Content passes the raw block as `code`, which — unlike the slot — is readable
+// during prerender. Without it we can only reach the source through the DOM, which
+// restricts rendering to the browser.
+const props = defineProps<{ code?: string }>()
 
 const slotContainerRef = ref<HTMLDivElement | null>(null)
 
-function extractSource(): string {
-  const raw = slotContainerRef.value?.textContent ?? ''
+function clean(raw: string): string {
   return raw
       .replace(/^\s*plantuml\s*\n/, '')
       .trim()
 }
 
-const svgContent  = ref('')
+const buildSource = computed(() => clean(props.code ?? ''))
+
+function sourceKey(s: string): string {
+  let h = 0x811c9dc5
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return (h >>> 0).toString(36)
+}
+
+// Renders during prerender when the server is reachable by absolute URL, so the SVG
+// ships inside the HTML. On hydration this resolves from the payload rather than
+// refetching, leaving the published page with no PlantUML request at all.
+const {data: prerenderedSvg} = useAsyncData(
+    `plantuml-${sourceKey(buildSource.value)}`,
+    () => (import.meta.server && buildSource.value && canRenderAtBuildTime())
+        ? renderPlantuml(buildSource.value)
+        : Promise.resolve(null),
+)
+
+const svgContent  = ref(prerenderedSvg.value ?? '')
 const renderError = ref('')
-const isLoading   = ref(true)
+const isLoading   = ref(!prerenderedSvg.value)
 
 const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef    = ref<HTMLDivElement | null>(null)
@@ -111,16 +136,20 @@ function resetView() {
 }
 
 onMounted(async () => {
-  try {
-    svgContent.value  = await renderPlantuml(extractSource())
-    renderError.value = ''
-  } catch (err: any) {
-    renderError.value = err?.message ?? 'Render failed'
-  } finally {
-    isLoading.value = false
-    await nextTick()
-    resetView()
+  // Only runs when prerendering produced nothing — a same-origin server URL, or
+  // content that did not supply `code`. Otherwise the SVG is already in the HTML.
+  if (!svgContent.value) {
+    try {
+      const source = buildSource.value || clean(slotContainerRef.value?.textContent ?? '')
+      svgContent.value  = await renderPlantuml(source)
+      renderError.value = ''
+    } catch (err: any) {
+      renderError.value = err?.message ?? 'Render failed'
+    }
   }
+  isLoading.value = false
+  await nextTick()
+  resetView()
 })
 
 const zoomPercent = computed(() => Math.round(transform.value.scale * 100))

@@ -66,6 +66,16 @@ const SERVER =
     (import.meta.env?.VITE_PLANTUML_SERVER as string | undefined) ??
     'http://localhost:8081'
 
+/**
+ * Whether diagrams can be rendered during prerender, which inlines the SVG into the
+ * generated HTML so the published page never calls a PlantUML server.
+ *
+ * Only absolute URLs qualify: a same-origin value like `/plantuml` has no origin to
+ * resolve against in Node, so those builds fall back to rendering in the browser.
+ */
+export function canRenderAtBuildTime(): boolean {
+    return /^https?:\/\//i.test(SERVER)
+}
 
 export async function plantumlSvgUrl(source: string): Promise<string> {
     const wrapped =

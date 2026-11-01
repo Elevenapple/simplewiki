@@ -19,6 +19,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # Renders diagrams during the build so the published pages ship inline SVG.
+    # GitHub Pages cannot proxy, so this is the only way to keep diagram source
+    # off the public plantuml.com service.
+    services:
+      plantuml:
+        image: plantuml/plantuml-server:jetty
+        ports:
+          - 8081:8080
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
@@ -31,8 +40,43 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Wait for PlantUML server
+        run: |
+          # Renders "A -> B", so this proves the server can actually draw, not just listen.
+          probe=http://localhost:8081/svg/SoWkIImgAStDuN9KqBLJSE9oICrB0N81
+          for _ in $(seq 1 60); do
+            if curl -fsS -o /dev/null "$probe"; then
+              echo "PlantUML server ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "PlantUML server never became ready" >&2
+          exit 1
+
       - name: Generate static site
+        env:
+          VITE_PLANTUML_SERVER: http://localhost:8081
         run: bun run generate
+
+      - name: Verify diagrams were inlined at build time
+        run: |
+          page=$(find .output/public -path '*diagrams/plantuml*' -name index.html | head -1)
+          if [ -z "$page" ]; then
+            echo "Could not locate the PlantUML page in the build output" >&2
+            exit 1
+          fi
+          # The component emits .diagram-canvas only once an SVG exists; without a
+          # build-time render the prerendered HTML would still say "Rendering…".
+          if ! grep -q 'diagram-canvas' "$page"; then
+            echo "PlantUML diagrams were not rendered at build time: $page" >&2
+            exit 1
+          fi
+          if grep -rIl 'plantuml\.com/plantuml' .output/public; then
+            echo "Published output would call the public PlantUML service" >&2
+            exit 1
+          fi
+          echo "Diagrams inlined; no public PlantUML service references."
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v5
