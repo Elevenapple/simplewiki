@@ -10,6 +10,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # Mirrors the Pages deploy build so a push to any branch exercises the same
+    # build-time diagram rendering. Without this service the renderer still defaults
+    # to http://localhost:8081, the fetch fails silently during prerender, and the
+    # generated page ships a permanent "Rendering…" spinner while the job stays green.
+    services:
+      plantuml:
+        image: plantuml/plantuml-server:jetty
+        ports:
+          - 8081:8080
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
@@ -22,5 +32,40 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Wait for PlantUML server
+        run: |
+          # Renders "A -> B", so this proves the server can actually draw, not just listen.
+          probe=http://localhost:8081/svg/SoWkIImgAStDuN9KqBLJSE9oICrB0N81
+          for _ in $(seq 1 60); do
+            if curl -fsS -o /dev/null "$probe"; then
+              echo "PlantUML server ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "PlantUML server never became ready" >&2
+          exit 1
+
       - name: Generate static site
+        env:
+          VITE_PLANTUML_SERVER: http://localhost:8081
         run: bun run generate
+
+      - name: Verify diagrams were inlined at build time
+        run: |
+          page=$(find .output/public -path '*diagrams/plantuml*' -name index.html | head -1)
+          if [ -z "$page" ]; then
+            echo "Could not locate the PlantUML page in the build output" >&2
+            exit 1
+          fi
+          # The component emits .diagram-canvas only once an SVG exists; without a
+          # build-time render the prerendered HTML would still say "Rendering…".
+          if ! grep -q 'diagram-canvas' "$page"; then
+            echo "PlantUML diagrams were not rendered at build time: $page" >&2
+            exit 1
+          fi
+          if grep -rIl 'plantuml\.com/plantuml' .output/public; then
+            echo "Build output would call the public PlantUML service" >&2
+            exit 1
+          fi
+          echo "Diagrams inlined; no public PlantUML service references."
