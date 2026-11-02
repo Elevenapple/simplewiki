@@ -8,7 +8,8 @@ defineProps({
 </script>
 
 <template>
-    <div class="bg-content-bg pt-4.5 px-6.5 pb-10 border-r border-l border-border min-h-screen min-w-0">
+    <div id="main-content" tabindex="-1"
+        class="bg-content-bg pt-4.5 px-6.5 pb-10 border-r border-l border-border min-h-screen min-w-0 scroll-mt-4 focus:outline-none">
         <ContentRenderer v-if="data" :value="data" class="renderer" :components="{
             h1: 'ProseH1',
             h2: 'ProseH2',
