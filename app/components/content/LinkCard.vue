@@ -1,14 +1,21 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue'
+import { isExternalLink } from '~/util/externalLink.ts'
+
+const props = defineProps<{
   to: string
   title: string
   description?: string
 }>()
+
+const isExternal = computed(() => isExternalLink(props.to))
 </script>
 
 <template>
   <NuxtLink
     :to="to"
+    :target="isExternal ? '_blank' : undefined"
+    :rel="isExternal ? 'noopener noreferrer' : undefined"
     class="my-3.5 flex max-w-120 items-start gap-2.5 border border-border bg-content-bg px-3 py-2.5 no-underline! hover:bg-header-band hover:no-underline!"
   >
     <div class="text-[15px] font-bold leading-[1.3] text-link">

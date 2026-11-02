@@ -1,7 +1,15 @@
 <script setup lang="ts">
-defineProps<{
+import { isExternalLink } from '~/util/externalLink.ts'
+
+const props = defineProps<{
   items: { title: string, to: string, description?: string, external?: boolean }[]
 }>()
+
+// `external` stays as an explicit override; without it the URL decides, so an
+// outside link opens in a new tab even when the flag was left off.
+function opensInNewTab(item: { to: string, external?: boolean }): boolean {
+  return item.external ?? isExternalLink(item.to)
+}
 </script>
 
 <template>
@@ -18,7 +26,8 @@ defineProps<{
       >
         <NuxtLink
           :to="item.to"
-          :target="item.external ? '_blank' : undefined"
+          :target="opensInNewTab(item) ? '_blank' : undefined"
+          :rel="opensInNewTab(item) ? 'noopener noreferrer' : undefined"
           class="font-bold text-link"
         >
           {{ item.title }}

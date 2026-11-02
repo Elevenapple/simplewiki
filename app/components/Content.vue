@@ -15,6 +15,7 @@ defineProps({
             h3: 'ProseH3',
             h4: 'ProseH4',
             pre: 'ProsePre',
+            a: 'ProseA',
             FieldTable: 'FieldTable',
             Badge: 'Badge',
             Accordion: 'Accordion',
