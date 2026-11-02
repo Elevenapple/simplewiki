@@ -58,4 +58,5 @@ defineOgImage('WikiPage', {
     If you want to remove it, please consider supporting the project on GitHub or by donating. You can find the links in the ReadME itself. Thank you for your understanding and support!
     -->
     <Footer/>
+    <BackToTop />
 </template>
