@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const { wikiName } = useAppConfig()
 
@@ -7,11 +7,18 @@ const { status, search } = useSearchCollection('content')
 
 const searchQuery = ref('')
 const searchResults = ref<any[]>([])
+const searchError = ref('')
 const isDropdownOpen = ref(false)
 
+// The dropdown opens for any non-empty query so an empty result set shows a
+// "nothing found" message instead of leaving the box silent.
+const hasQuery = computed(() => searchQuery.value.trim().length > 0)
+
 watch(searchQuery, async (value) => {
-    if (!value.trim()) {
+    const term = value.trim()
+    if (!term) {
         searchResults.value = []
+        searchError.value = ''
         isDropdownOpen.value = false
         return
     }
@@ -24,11 +31,17 @@ watch(searchQuery, async (value) => {
             }
         })
 
+        // Ignore a late response for a query the reader has since changed.
+        if (searchQuery.value.trim() !== term) return
+
         searchResults.value = results.slice(0, 6)
-        isDropdownOpen.value = searchResults.value.length > 0
+        searchError.value = ''
     } catch (e) {
         console.error('Error while searching:', e)
+        searchResults.value = []
+        searchError.value = 'Search is unavailable right now.'
     }
+    isDropdownOpen.value = true
 })
 
 const closeSearch = () => {
@@ -100,14 +113,27 @@ const setTheme = (theme: 'light' | 'dark') => {
 
                     <div class="flex items-stretch relative">
                         <input v-model="searchQuery" @blur="closeSearch"
-                            @focus="isDropdownOpen = searchResults.length > 0" :disabled="status !== 'ready'"
+                            @focus="isDropdownOpen = hasQuery" :disabled="status !== 'ready'"
                             type="text" :placeholder="status === 'ready' ? 'Search wiki...' : 'Indexing...'"
                             class="w-full sm:w-56 py-1 px-2 border border-border rounded-xs bg-white dark:bg-sidebar-bg font-body text-sm text-text focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus disabled:opacity-50">
                     </div>
 
-                    <div v-if="isDropdownOpen"
+                    <div v-if="isDropdownOpen" role="status" aria-live="polite"
                         class="absolute top-full right-0 mt-1 w-72 bg-white dark:bg-sidebar-bg border border-border rounded-xs shadow-lg overflow-hidden max-h-72 overflow-y-auto z-50">
-                        <ul class="list-none m-0 p-0">
+                        <div v-if="searchError" class="p-3 text-xs text-text-muted">
+                            {{ searchError }}
+                        </div>
+
+                        <div v-else-if="searchResults.length === 0" class="p-3 text-xs text-text-muted">
+                            <div class="font-bold text-text">
+                                No results for &ldquo;{{ searchQuery.trim() }}&rdquo;
+                            </div>
+                            <div class="mt-1">
+                                Check the spelling, try a shorter word, or browse the navigation.
+                            </div>
+                        </div>
+
+                        <ul v-else class="list-none m-0 p-0">
                             <li v-for="result in searchResults" :key="result.id"
                                 class="border-b border-border-light last:border-0">
                                 <NuxtLink :to="result.id"
