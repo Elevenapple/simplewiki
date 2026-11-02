@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "bun scripts/dev-plantuml.mjs && nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "preview:pages": "node test-build.js",
