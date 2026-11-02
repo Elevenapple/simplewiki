@@ -13,11 +13,21 @@ const { data } = await useAsyncData(`content-${route.path}`, () => {
     return queryCollection('content').path(route.path).first()
 })
 
+const notFound = computed(() => !data.value)
+
+// Static hosts answer unknown URLs from 404.html, but a direct SSR render (bun dev,
+// `nuxt preview`) would otherwise report 200 for a page that does not exist.
+if (import.meta.server && notFound.value) {
+    const event = useRequestEvent()
+    if (event) setResponseStatus(event, 404)
+}
+
 useSeoMeta({
-    title: () => data.value?.title,
-    description: () => data.value?.description,
-    ogTitle: () => data.value?.title,
-    ogDescription: () => data.value?.description,
+    title: () => data.value?.title ?? 'Page not found',
+    description: () => data.value?.description ?? 'This page does not exist in the wiki.',
+    ogTitle: () => data.value?.title ?? 'Page not found',
+    ogDescription: () => data.value?.description ?? 'This page does not exist in the wiki.',
+    robots: () => notFound.value ? 'noindex, follow' : undefined,
 })
 
 const tocLinks = computed(() => data.value?.body?.toc?.links ?? [])
@@ -25,15 +35,15 @@ const tocLinks = computed(() => data.value?.body?.toc?.links ?? [])
 const isSidebarOpen = ref(false)
 
 defineOgImage('WikiPage', {
-  title: data.value?.title,
-  description: data.value?.description,
+  title: data.value?.title ?? 'Page not found',
+  description: data.value?.description ?? 'This page does not exist in the wiki.',
 })
 
 </script>
 
 <template>
     <Header @open-sidebar="isSidebarOpen = true" />
-    <Trace :title="data?.title" />
+    <Trace :title="data?.title ?? 'Page not found'" />
     <main class="max-w-275 mx-auto sm:grid sm:grid-cols-[180px_minmax(0,1fr)_240px] w-full items-start min-h-0">
         <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
         <ToC :is-mobile=true :toc-links="tocLinks" />

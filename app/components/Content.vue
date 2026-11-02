@@ -30,7 +30,7 @@ defineProps({
             SeeAlso: 'SeeAlso',
             LinkCard: 'LinkCard',
         }" />
-        <p v-else class="text-red-900">No content available.</p>
+        <NotFound v-else />
 
         <PageNav v-if="data" />
     </div>
