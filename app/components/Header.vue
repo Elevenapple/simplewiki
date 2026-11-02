@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const { wikiName } = useAppConfig()
 
@@ -121,6 +121,28 @@ if (firstGroup) {
     }
 }
 
+const searchInput = ref<HTMLInputElement | null>(null)
+
+// "/" focuses the search box from anywhere on the page, unless the reader is already
+// typing into a field or holding a modifier (so browser shortcuts still work).
+function onGlobalKeydown(e: KeyboardEvent) {
+    if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return
+
+    const target = e.target as HTMLElement | null
+    const tag = target?.tagName
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return
+
+    const input = searchInput.value
+    if (!input || input.disabled) return
+
+    e.preventDefault()
+    input.focus()
+    input.select()
+}
+
+onMounted(() => window.addEventListener('keydown', onGlobalKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onGlobalKeydown))
+
 const colorMode = useColorMode()
 
 const setTheme = (theme: 'light' | 'dark') => {
@@ -167,9 +189,9 @@ const setTheme = (theme: 'light' | 'dark') => {
 
 
                     <div class="flex items-stretch relative">
-                        <input v-model="searchQuery" @blur="closeSearch" @keydown="onSearchKeydown"
+                        <input ref="searchInput" v-model="searchQuery" @blur="closeSearch" @keydown="onSearchKeydown"
                             @focus="isDropdownOpen = hasQuery" :disabled="status !== 'ready'"
-                            type="text" :placeholder="status === 'ready' ? 'Search wiki...' : 'Indexing...'"
+                            type="text" :placeholder="status === 'ready' ? 'Search wiki...  /' : 'Indexing...'"
                             role="combobox" aria-autocomplete="list" aria-controls="wiki-search-results"
                             :aria-expanded="isDropdownOpen"
                             :aria-activedescendant="activeIndex >= 0 ? `wiki-search-result-${activeIndex}` : undefined"
