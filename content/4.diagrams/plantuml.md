@@ -22,7 +22,7 @@ Unlike Mermaid, PlantUML diagrams are rendered by a PlantUML server, not in the 
 
 - **GitHub Pages**: the deploy workflow runs a PlantUML server as a build service and renders every diagram *during the build*, so the published pages contain plain inline SVG and make no diagram requests at all.
 - **Docker**: `docker compose up` starts a bundled PlantUML server alongside the wiki, and nginx proxies diagram requests to it same-origin.
-- **Local development** (`bun run dev`): start the renderer first with `docker compose up -d plantuml` — otherwise diagram blocks show a render error while the rest of the site works normally.
+- **Local development** (`bun dev`): the dev script starts the bundled PlantUML server for you with Docker Compose, or reuses one already listening on `localhost:8081`. If Docker is unavailable it prints a warning and the site runs normally with diagram blocks showing a render error.
 
 If you point `VITE_PLANTUML_SERVER` at a remote server, note that it receives the full text of every diagram — the source is encoded into the request URL, not hidden. See `.env.example`.
 
