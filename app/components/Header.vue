@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
 const { wikiName } = useAppConfig()
 
@@ -36,6 +36,7 @@ watch(searchQuery, async (value) => {
 
         searchResults.value = results.slice(0, 6)
         searchError.value = ''
+        activeIndex.value = -1
     } catch (e) {
         console.error('Error while searching:', e)
         searchResults.value = []
@@ -44,11 +45,65 @@ watch(searchQuery, async (value) => {
     isDropdownOpen.value = true
 })
 
+// Index of the keyboard-highlighted result; -1 means nothing is highlighted yet.
+const activeIndex = ref(-1)
+const resultRefs = ref<HTMLElement[]>([])
+
 const closeSearch = () => {
     setTimeout(() => {
         isDropdownOpen.value = false
         searchQuery.value = ''
     }, 150)
+}
+
+function moveActive(delta: number) {
+    const count = searchResults.value.length
+    if (!count) return
+    // Wrap around at both ends so Down from the last match returns to the first.
+    activeIndex.value = (activeIndex.value + delta + count) % count
+    nextTick(() => resultRefs.value[activeIndex.value]?.scrollIntoView({ block: 'nearest' }))
+}
+
+function onSearchKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+        isDropdownOpen.value = false
+        return
+    }
+
+    if (!isDropdownOpen.value || searchResults.value.length === 0) {
+        if (e.key === 'ArrowDown' && hasQuery.value) isDropdownOpen.value = true
+        return
+    }
+
+    switch (e.key) {
+        case 'ArrowDown':
+            e.preventDefault()
+            moveActive(1)
+            break
+        case 'ArrowUp':
+            e.preventDefault()
+            moveActive(-1)
+            break
+        case 'Home':
+            e.preventDefault()
+            activeIndex.value = 0
+            break
+        case 'End':
+            e.preventDefault()
+            activeIndex.value = searchResults.value.length - 1
+            break
+        case 'Enter': {
+            // Enter with nothing highlighted opens the first match, so a quick
+            // type-and-Enter still works.
+            const target = searchResults.value[activeIndex.value] ?? searchResults.value[0]
+            if (!target) return
+            e.preventDefault()
+            isDropdownOpen.value = false
+            searchQuery.value = ''
+            navigateTo(target.id)
+            break
+        }
+    }
 }
 
 const { data: navigation } = await useAsyncData('root-redirect', () =>
@@ -112,19 +167,22 @@ const setTheme = (theme: 'light' | 'dark') => {
 
 
                     <div class="flex items-stretch relative">
-                        <input v-model="searchQuery" @blur="closeSearch"
+                        <input v-model="searchQuery" @blur="closeSearch" @keydown="onSearchKeydown"
                             @focus="isDropdownOpen = hasQuery" :disabled="status !== 'ready'"
                             type="text" :placeholder="status === 'ready' ? 'Search wiki...' : 'Indexing...'"
+                            role="combobox" aria-autocomplete="list" aria-controls="wiki-search-results"
+                            :aria-expanded="isDropdownOpen"
+                            :aria-activedescendant="activeIndex >= 0 ? `wiki-search-result-${activeIndex}` : undefined"
                             class="w-full sm:w-56 py-1 px-2 border border-border rounded-xs bg-white dark:bg-sidebar-bg font-body text-sm text-text focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus disabled:opacity-50">
                     </div>
 
-                    <div v-if="isDropdownOpen" role="status" aria-live="polite"
+                    <div v-if="isDropdownOpen"
                         class="absolute top-full right-0 mt-1 w-72 bg-white dark:bg-sidebar-bg border border-border rounded-xs shadow-lg overflow-hidden max-h-72 overflow-y-auto z-50">
-                        <div v-if="searchError" class="p-3 text-xs text-text-muted">
+                        <div v-if="searchError" role="status" aria-live="polite" class="p-3 text-xs text-text-muted">
                             {{ searchError }}
                         </div>
 
-                        <div v-else-if="searchResults.length === 0" class="p-3 text-xs text-text-muted">
+                        <div v-else-if="searchResults.length === 0" role="status" aria-live="polite" class="p-3 text-xs text-text-muted">
                             <div class="font-bold text-text">
                                 No results for &ldquo;{{ searchQuery.trim() }}&rdquo;
                             </div>
@@ -133,10 +191,15 @@ const setTheme = (theme: 'light' | 'dark') => {
                             </div>
                         </div>
 
-                        <ul v-else class="list-none m-0 p-0">
-                            <li v-for="result in searchResults" :key="result.id"
-                                class="border-b border-border-light last:border-0">
-                                <NuxtLink :to="result.id"
+                        <ul v-else id="wiki-search-results" role="listbox" class="list-none m-0 p-0">
+                            <li v-for="(result, index) in searchResults" :key="result.id"
+                                :id="`wiki-search-result-${index}`" role="option"
+                                :aria-selected="index === activeIndex"
+                                :ref="el => { if (el) resultRefs[index] = el as HTMLElement }"
+                                class="border-b border-border-light last:border-0"
+                                @mouseenter="activeIndex = index">
+                                <NuxtLink :to="result.id" tabindex="-1"
+                                    :class="index === activeIndex ? 'bg-[#f6f8fa] dark:bg-[#2d333b]' : ''"
                                     class="block p-2 hover:bg-[#f6f8fa] dark:hover:bg-[#2d333b] text-left no-underline">
                                     <div class="text-xs font-bold text-link truncate">{{ result.title }}</div>
 
