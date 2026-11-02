@@ -1,9 +1,21 @@
 <script setup lang="ts">
-defineProps({
+import { computed, provide, toRef } from 'vue'
+import { firstHeadingId, readingMinutes } from '~/util/readingTime.ts'
+
+const props = defineProps({
     data: {
         type: [Object, null],
         required: true,
     }
+})
+
+const data = toRef(props, 'data')
+
+// ProseH1 renders the note, but only for the page title: several pages use further
+// h1s lower down, so the title is identified by the id of the first one.
+provide('readingTime', {
+    minutes: computed(() => data.value ? readingMinutes(data.value.body) : 0),
+    titleId: computed(() => data.value ? firstHeadingId(data.value.body) : null),
 })
 </script>
 
