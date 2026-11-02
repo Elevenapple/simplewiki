@@ -32,6 +32,7 @@ defineProps({
         }" />
         <NotFound v-else />
 
+        <EditLink v-if="data" :page="data" />
         <PageNav v-if="data" />
     </div>
 </template>
