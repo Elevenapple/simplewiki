@@ -75,6 +75,15 @@ onBeforeUnmount(() => {
 // New page or new headings: recompute once the DOM has the new content.
 watch([() => route.path, headingIds], () => nextTick(updateActive))
 
+// On phones the ToC is a collapsible panel above the article. Closing it as soon
+// as an entry is tapped (before the hash scroll runs) means the panel's height is
+// gone by the time the browser positions the heading, so the jump lands cleanly.
+const mobilePanel = ref<HTMLDetailsElement | null>(null)
+
+function closeMobilePanel() {
+    if (mobilePanel.value) mobilePanel.value.open = false
+}
+
 // A top-level entry is highlighted when it, or any of its sub-headings, is current.
 function isActiveGroup(link: any): boolean {
     if (link.id === activeId.value) return true
@@ -116,7 +125,7 @@ function isActiveGroup(link: any): boolean {
         </ol>
     </div>
     <div v-if="tocLinks.length && isMobile" class="sm:hidden my-3 px-2 print:hidden">
-        <details class="bg-toc-bg border border-border rounded-xs">
+        <details ref="mobilePanel" class="bg-toc-bg border border-border rounded-xs">
             <summary
                 class="cursor-pointer select-none px-3 py-2 text-[13px] font-bold text-text flex items-center justify-between list-none">
                 <span>Table of Contents</span>
@@ -128,7 +137,7 @@ function isActiveGroup(link: any): boolean {
                     <li v-for="link in tocLinks" :key="link.id"
                         class="mt-1 mb-1 [counter-increment:toc-main] [counter-reset:toc-sub]">
 
-                        <NuxtLink :to="`#${link.id}`"
+                        <NuxtLink :to="`#${link.id}`" @click="closeMobilePanel"
                             :aria-current="activeId === link.id ? 'location' : undefined"
                             class="toc-link text-text hover:text-link-hover no-underline block"
                             :class="{ 'toc-active': activeId === link.id, 'toc-active-group': isActiveGroup(link) }">
@@ -138,7 +147,7 @@ function isActiveGroup(link: any): boolean {
                         <ol v-if="link.children?.length" class="pl-4 mt-1 list-decimal list-outside">
                             <li v-for="subLink in link.children" :key="subLink.id"
                                 class="my-1 [counter-increment:toc-sub]">
-                                <NuxtLink :to="`#${subLink.id}`"
+                                <NuxtLink :to="`#${subLink.id}`" @click="closeMobilePanel"
                                     :aria-current="activeId === subLink.id ? 'location' : undefined"
                                     class="toc-link text-text-muted hover:text-link-hover no-underline block"
                                     :class="{ 'toc-active': activeId === subLink.id }">
