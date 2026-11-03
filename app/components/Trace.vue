@@ -81,7 +81,7 @@ const currentTitle = computed(() => props.title || formatSlug(route.path))
 </script>
 
 <template>
-    <nav aria-label="Breadcrumb" class="bg-header-band border-b border-border">
+    <nav aria-label="Breadcrumb" class="bg-header-band border-b border-border print:hidden">
         <ol class="max-w-275 mx-auto py-1 px-5 text-[11.5px] leading-none text-text-muted flex flex-wrap items-center list-none m-0">
 
             <li class="flex items-center">

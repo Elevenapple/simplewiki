@@ -21,7 +21,7 @@ const editUrl = computed(() => {
 </script>
 
 <template>
-    <div v-if="editUrl" class="mt-8 flex justify-end">
+    <div v-if="editUrl" class="mt-8 flex justify-end print:hidden">
         <a :href="editUrl" target="_blank" rel="noopener noreferrer"
             class="inline-flex items-center gap-1.5 text-[12px] text-text-muted hover:text-link no-underline hover:underline">
             <svg fill="none" height="13" viewBox="0 0 24 24" width="13" aria-hidden="true">

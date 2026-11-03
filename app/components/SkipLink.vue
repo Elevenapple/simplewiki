@@ -13,7 +13,7 @@ function skip(e: MouseEvent | KeyboardEvent) {
 </script>
 
 <template>
-    <a :href="`#${TARGET_ID}`" class="skip-link" @click="skip">
+    <a :href="`#${TARGET_ID}`" class="skip-link print:hidden" @click="skip">
         Skip to content
     </a>
 </template>

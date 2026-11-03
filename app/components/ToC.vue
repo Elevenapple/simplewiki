@@ -83,7 +83,7 @@ function isActiveGroup(link: any): boolean {
 </script>
 
 <template>
-    <div class="sm:ml-4 sm:mt-4 sm:my-0 pt-2 px-3.5 pb-2.5 bg-toc-bg border border-border rounded-xs text-13 [counter-reset:toc-main] sticky top-4 my-8 "
+    <div class="sm:ml-4 sm:mt-4 sm:my-0 pt-2 px-3.5 pb-2.5 bg-toc-bg border border-border rounded-xs text-13 [counter-reset:toc-main] sticky top-4 my-8 print:hidden"
         v-if="tocLinks.length && !isMobile">
         <div class="font-bold mx-0 mt-0 mb-1.5 pb-1.25 border-b border-border-light tracking-[0.01em] text-text!">
             Table of Contents
@@ -115,7 +115,7 @@ function isActiveGroup(link: any): boolean {
             </li>
         </ol>
     </div>
-    <div v-if="tocLinks.length && isMobile" class="sm:hidden my-3 px-2">
+    <div v-if="tocLinks.length && isMobile" class="sm:hidden my-3 px-2 print:hidden">
         <details class="bg-toc-bg border border-border rounded-xs">
             <summary
                 class="cursor-pointer select-none px-3 py-2 text-[13px] font-bold text-text flex items-center justify-between list-none">

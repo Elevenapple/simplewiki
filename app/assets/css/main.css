@@ -105,3 +105,57 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--border);
 }
+/* Print: only the article. Chrome elements carry `print:hidden`; this handles the
+   things utilities cannot reach, such as scoped component controls and the
+   collapsed/scrolling states that make sense on screen but not on paper. */
+@media print {
+  html, body, #__nuxt {
+    height: auto;
+    background: #fff;
+  }
+
+  body {
+    color: #000;
+  }
+
+  /* Copy buttons and diagram zoom controls are useless on paper. */
+  .copy-btn,
+  .diagram-controls,
+  .scroll-hint {
+    display: none !important;
+  }
+
+  /* Code and diagrams scroll on screen; on paper they must simply flow. */
+  pre {
+    white-space: pre-wrap !important;
+    overflow: visible !important;
+    page-break-inside: avoid;
+  }
+
+  .diagram-viewport {
+    height: auto !important;
+    overflow: visible !important;
+    background: none !important;
+  }
+
+  .diagram-canvas {
+    position: static !important;
+    transform: none !important;
+  }
+
+  h1, h2, h3, h4 {
+    page-break-after: avoid;
+  }
+
+  img, table, figure {
+    page-break-inside: avoid;
+  }
+
+  /* Show where links go, since they cannot be clicked. In-page anchors are skipped. */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #555;
+    word-break: break-all;
+  }
+}

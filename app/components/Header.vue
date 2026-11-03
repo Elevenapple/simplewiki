@@ -151,7 +151,7 @@ const setTheme = (theme: 'light' | 'dark') => {
 </script>
 
 <template>
-    <header class="bg-content-bg border-b border-border relative z-50">
+    <header class="bg-content-bg border-b border-border relative z-50 print:hidden">
         <div
             class="max-w-275 mx-auto pt-2.25 pb-2 px-5 flex flex-col sm:flex-row sm:items-center justify-between sm:gap-6 flex-wrap w-full">
             <div class="flex items-baseline gap-2 justify-center sm:justify-start">

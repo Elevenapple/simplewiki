@@ -61,7 +61,7 @@ const next = computed(() =>
 
 <template>
     <nav v-if="prev || next" aria-label="Previous and next page"
-        class="mt-10 pt-4 border-t border-border-light grid grid-cols-1 sm:grid-cols-2 gap-3">
+        class="mt-10 pt-4 border-t border-border-light grid grid-cols-1 sm:grid-cols-2 gap-3 print:hidden">
         <NuxtLink v-if="prev" :to="prev.path"
             class="group flex flex-col gap-0.5 rounded-md border border-border-light bg-header-band px-3.5 py-2.5 no-underline hover:border-border transition-colors">
             <span class="text-[11px] uppercase tracking-[0.02em] text-text-muted font-bold flex items-center gap-1">

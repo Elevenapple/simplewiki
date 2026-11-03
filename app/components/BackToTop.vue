@@ -35,7 +35,7 @@ onBeforeUnmount(() => {
 <template>
     <Transition name="btt">
         <button v-show="visible" type="button" aria-label="Back to top" title="Back to top" @click="scrollToTop"
-            class="fixed bottom-5 right-5 z-800 flex items-center justify-center w-9 h-9 rounded-full border border-border bg-content-bg text-text-muted shadow-md cursor-pointer hover:text-text hover:border-text-muted focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2 transition-colors">
+            class="print:hidden fixed bottom-5 right-5 z-800 flex items-center justify-center w-9 h-9 rounded-full border border-border bg-content-bg text-text-muted shadow-md cursor-pointer hover:text-text hover:border-text-muted focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2 transition-colors">
             <svg fill="none" height="16" viewBox="0 0 24 24" width="16" aria-hidden="true">
                 <path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
             </svg>

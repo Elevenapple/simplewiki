@@ -45,7 +45,7 @@ defineOgImage('WikiPage', {
     <SkipLink />
     <Header @open-sidebar="isSidebarOpen = true" />
     <Trace :title="data?.title ?? 'Page not found'" />
-    <main class="max-w-275 mx-auto sm:grid sm:grid-cols-[180px_minmax(0,1fr)_240px] w-full items-start min-h-0">
+    <main class="max-w-275 mx-auto sm:grid sm:grid-cols-[180px_minmax(0,1fr)_240px] w-full items-start min-h-0 print:block print:max-w-none">
         <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
         <ToC :is-mobile=true :toc-links="tocLinks" />
 
