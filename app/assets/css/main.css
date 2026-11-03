@@ -114,6 +114,24 @@ html {
   scroll-margin-top: 24px;
 }
 
+/* Search-term highlight on the landing page (see Content.vue). */
+::highlight(search-hit),
+mark.search-hit {
+  background-color: #fff5b8;
+  color: #24292e;
+}
+
+.dark ::highlight(search-hit),
+.dark mark.search-hit {
+  background-color: #6b5a00;
+  color: #fff;
+}
+
+mark.search-hit {
+  padding: 0 1px;
+  border-radius: 2px;
+}
+
 /* Section link icon: hidden until the heading is hovered or the icon itself focused. */
 .has-anchor:hover .heading-anchor,
 .has-anchor:focus-within .heading-anchor {

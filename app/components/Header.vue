@@ -45,6 +45,11 @@ watch(searchQuery, async (value) => {
     isDropdownOpen.value = true
 })
 
+// Result links carry the query so the destination page can highlight the matches.
+function resultLink(result: { id: string }, q = searchQuery.value.trim()) {
+    return q ? { path: result.id, query: { q } } : { path: result.id }
+}
+
 // Index of the keyboard-highlighted result; -1 means nothing is highlighted yet.
 const activeIndex = ref(-1)
 const resultRefs = ref<HTMLElement[]>([])
@@ -102,9 +107,10 @@ function onSearchKeydown(e: KeyboardEvent) {
             const target = searchResults.value[activeIndex.value] ?? searchResults.value[0]
             if (!target) return
             e.preventDefault()
+            const q = searchQuery.value.trim()
             isDropdownOpen.value = false
             searchQuery.value = ''
-            navigateTo(target.id)
+            navigateTo(resultLink(target, q))
             break
         }
     }
@@ -239,7 +245,7 @@ const setTheme = (theme: 'light' | 'dark') => {
                                 :ref="el => { if (el) resultRefs[index] = el as HTMLElement }"
                                 class="border-b border-border-light last:border-0"
                                 @mouseenter="activeIndex = index">
-                                <NuxtLink :to="result.id" tabindex="-1"
+                                <NuxtLink :to="resultLink(result)" tabindex="-1"
                                     :class="index === activeIndex ? 'bg-[#f6f8fa] dark:bg-[#2d333b]' : ''"
                                     class="block p-2 hover:bg-[#f6f8fa] dark:hover:bg-[#2d333b] text-left no-underline">
                                     <div class="text-xs font-bold text-link truncate">{{ result.title }}</div>

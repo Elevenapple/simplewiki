@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, provide, toRef } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, toRef, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { firstHeadingId, readingMinutes } from '~/util/readingTime.ts'
+import { highlightTerms, parseTerms } from '~/util/highlightTerms.ts'
 
 const props = defineProps({
     data: {
@@ -10,6 +12,47 @@ const props = defineProps({
 })
 
 const data = toRef(props, 'data')
+const route = useRoute()
+
+// Search results link here with ?q=<query>; the terms are painted onto the article
+// once it has rendered. Navigating anywhere without ?q= removes them again.
+const highlightQuery = computed(() => parseTerms(route.query.q))
+const highlightCount = ref(0)
+// Template ref to the ContentRenderer component; its root element is read via $el.
+const rendererRef = ref<any>(null)
+
+let clearHighlight: (() => void) | null = null
+
+async function applyHighlight() {
+    clearHighlight?.()
+    clearHighlight = null
+    highlightCount.value = 0
+
+    if (!highlightQuery.value.length || !data.value) return
+    await nextTick()
+
+    const root = rendererRef.value?.$el ?? rendererRef.value
+    if (!(root instanceof HTMLElement)) return
+
+    const result = highlightTerms(root, highlightQuery.value)
+    clearHighlight = result.clear
+    highlightCount.value = result.count
+
+    // Bring the first hit into view unless the link already targets a heading.
+    if (result.first && !route.hash) {
+        const el = result.first instanceof Range
+            ? (result.first.startContainer.parentElement ?? null)
+            : result.first
+        el?.scrollIntoView({ block: 'center' })
+    }
+}
+
+onMounted(applyHighlight)
+watch([highlightQuery, data], applyHighlight)
+onBeforeUnmount(() => clearHighlight?.())
+
+// Same page without the query, so "Clear" removes the highlight in place.
+const clearTarget = computed(() => ({ path: route.path, hash: route.hash }))
 
 // ProseH1 renders the description and reading time, but only under the page title:
 // several pages use further h1s lower down, so the title is identified by the id of
@@ -24,7 +67,21 @@ provide('pageMeta', {
 <template>
     <div id="main-content" tabindex="-1"
         class="bg-content-bg pt-4.5 px-6.5 pb-10 border-r border-l border-border min-h-screen min-w-0 scroll-mt-4 focus:outline-none print:border-0 print:px-0 print:pt-0 print:min-h-0">
-        <ContentRenderer v-if="data" :value="data" class="renderer" :components="{
+        <div v-if="data && highlightQuery.length" data-no-highlight
+            class="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xs border border-border-light bg-header-band px-3 py-1.5 text-[12px] text-text-muted print:hidden">
+            <span>
+                <template v-if="highlightCount > 0">
+                    Highlighting {{ highlightCount }} {{ highlightCount === 1 ? 'match' : 'matches' }} for
+                </template>
+                <template v-else>
+                    No matches on this page for
+                </template>
+                <strong class="text-text">&ldquo;{{ highlightQuery.join(' ') }}&rdquo;</strong>
+            </span>
+            <NuxtLink :to="clearTarget" class="text-link hover:underline ml-auto">Clear</NuxtLink>
+        </div>
+
+        <ContentRenderer v-if="data" ref="rendererRef" :value="data" class="renderer" :components="{
             h1: 'ProseH1',
             h2: 'ProseH2',
             h3: 'ProseH3',
