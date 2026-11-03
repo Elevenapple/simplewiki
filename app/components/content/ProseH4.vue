@@ -8,10 +8,11 @@ const href = computed(() => `${route.path}#${props.id}`)
 </script>
 
 <template>
-  <h4 :id="id" >
+  <h4 :id="id" class="has-anchor">
     <NuxtLink v-if="id" :to="href">
       <slot />
     </NuxtLink>
     <slot v-else />
+    <HeadingAnchor v-if="id" :id="id" />
   </h4>
 </template>

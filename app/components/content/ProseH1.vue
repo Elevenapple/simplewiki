@@ -20,11 +20,12 @@ const showReadingTime = computed(() => isPageTitle.value && pageMeta!.minutes.va
 </script>
 
 <template>
-  <h1 :id="id" >
+  <h1 :id="id" class="has-anchor">
     <NuxtLink v-if="id" :to="href" class="text-text!">
       <slot />
     </NuxtLink>
     <slot v-else />
+    <HeadingAnchor v-if="id" :id="id" />
   </h1>
 
   <p v-if="description" class="page-description">

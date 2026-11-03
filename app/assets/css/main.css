@@ -105,6 +105,12 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--border);
 }
+/* Section link icon: hidden until the heading is hovered or the icon itself focused. */
+.has-anchor:hover .heading-anchor,
+.has-anchor:focus-within .heading-anchor {
+  opacity: 1;
+}
+
 /* Print: only the article. Chrome elements carry `print:hidden`; this handles the
    things utilities cannot reach, such as scoped component controls and the
    collapsed/scrolling states that make sense on screen but not on paper. */
