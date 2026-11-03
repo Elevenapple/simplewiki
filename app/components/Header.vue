@@ -126,6 +126,13 @@ if (firstGroup) {
 }
 
 const searchInput = ref<HTMLInputElement | null>(null)
+const isSearchFocused = ref(false)
+
+// The "/" badge only makes sense while the box is idle and ready to receive the
+// shortcut.
+const showShortcutHint = computed(() =>
+    status.value === 'ready' && !isSearchFocused.value && !hasQuery.value,
+)
 
 // "/" focuses the search box from anywhere on the page, unless the reader is already
 // typing into a field or holding a modifier (so browser shortcuts still work).
@@ -193,13 +200,21 @@ const setTheme = (theme: 'light' | 'dark') => {
 
 
                     <div class="flex items-stretch relative">
-                        <input ref="searchInput" v-model="searchQuery" @blur="closeSearch" @keydown="onSearchKeydown"
-                            @focus="isDropdownOpen = hasQuery" :disabled="status !== 'ready'"
-                            type="text" :placeholder="status === 'ready' ? 'Search wiki...  /' : 'Indexing...'"
+                        <input ref="searchInput" v-model="searchQuery" @keydown="onSearchKeydown"
+                            @blur="isSearchFocused = false; closeSearch()"
+                            @focus="isSearchFocused = true; isDropdownOpen = hasQuery" :disabled="status !== 'ready'"
+                            type="text" :placeholder="status === 'ready' ? 'Search wiki...' : 'Indexing...'"
                             role="combobox" aria-autocomplete="list" aria-controls="wiki-search-results"
                             :aria-expanded="isDropdownOpen"
                             :aria-activedescendant="activeIndex >= 0 ? `wiki-search-result-${activeIndex}` : undefined"
-                            class="w-full sm:w-56 py-1 px-2 border border-border rounded-xs bg-white dark:bg-sidebar-bg font-body text-sm text-text focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus disabled:opacity-50">
+                            class="w-full sm:w-56 py-1 pl-2 pr-7 border border-border rounded-xs bg-white dark:bg-sidebar-bg font-body text-sm text-text focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus disabled:opacity-50">
+
+                        <!-- Hint for the "/" shortcut. Hidden once the box is in use,
+                             where it would only crowd the text being typed. -->
+                        <kbd v-if="showShortcutHint" aria-hidden="true"
+                            class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 px-1 py-px border border-border-light rounded-xs bg-header-band text-text-muted font-mono text-[11px] leading-none">
+                            /
+                        </kbd>
                     </div>
 
                     <div v-if="isDropdownOpen"
