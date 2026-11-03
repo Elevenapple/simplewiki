@@ -162,9 +162,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onGlobalKeydown))
 
 const colorMode = useColorMode()
 
-const setTheme = (theme: 'light' | 'dark') => {
+// 'system' follows the OS setting via prefers-color-scheme; the module resolves it
+// to light or dark in colorMode.value and tracks later OS changes live.
+type Theme = 'light' | 'dark' | 'system'
+
+const setTheme = (theme: Theme) => {
     colorMode.preference = theme
 }
+
+// The active control reflects the stored preference, not the resolved value:
+// with "System" selected, the resolved value is light or dark, yet the choice
+// the reader made is "follow the system".
+const isTheme = (theme: Theme) => colorMode.preference === theme
 </script>
 
 <template>
@@ -194,12 +203,20 @@ const setTheme = (theme: 'light' | 'dark') => {
                         <div class="flex gap-1.5 text-[11px] font-body items-end text-center mx-auto sm:mx-0">
                             <span class="text-text-muted hidden sm:block">Design:</span>
                             <button class="cursor-pointer" @click="setTheme('light')"
-                                :class="colorMode.value === 'light' ? 'text-focus font-medium' : 'text-link hover:underline'">
+                                :aria-pressed="isTheme('light')"
+                                :class="isTheme('light') ? 'text-focus font-medium' : 'text-link hover:underline'">
                                 [ Light ]
                             </button>
                             <button class="cursor-pointer" @click="setTheme('dark')"
-                                :class="colorMode.value === 'dark' ? 'text-focus font-medium' : 'text-link hover:underline'">
+                                :aria-pressed="isTheme('dark')"
+                                :class="isTheme('dark') ? 'text-focus font-medium' : 'text-link hover:underline'">
                                 [ Dark ]
+                            </button>
+                            <button class="cursor-pointer" @click="setTheme('system')"
+                                :aria-pressed="isTheme('system')"
+                                :title="`Follow the operating system setting (currently ${colorMode.value})`"
+                                :class="isTheme('system') ? 'text-focus font-medium' : 'text-link hover:underline'">
+                                [ System ]
                             </button>
                         </div>
                     </ClientOnly>
