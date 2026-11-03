@@ -8,12 +8,15 @@ const props = defineProps<{
 }>()
 const href = computed(() => `${route.path}#${props.id}`)
 
-const readingTime = inject<{ minutes: any, titleId: any } | null>('readingTime', null)
+const pageMeta = inject<{ description: any, minutes: any, titleId: any } | null>('pageMeta', null)
 
-// Only the page title carries the note, not later h1s in the body.
-const showReadingTime = computed(() =>
-    !!readingTime && !!props.id && readingTime.titleId.value === props.id && readingTime.minutes.value > 0,
+// Only the page title carries this, not later h1s in the body.
+const isPageTitle = computed(() =>
+    !!pageMeta && !!props.id && pageMeta.titleId.value === props.id,
 )
+
+const description = computed(() => isPageTitle.value ? pageMeta!.description.value : '')
+const showReadingTime = computed(() => isPageTitle.value && pageMeta!.minutes.value > 0)
 </script>
 
 <template>
@@ -24,16 +27,29 @@ const showReadingTime = computed(() =>
     <slot v-else />
   </h1>
 
+  <p v-if="description" class="page-description">
+    {{ description }}
+  </p>
+
   <p v-if="showReadingTime" class="reading-time">
     <svg aria-hidden="true" fill="none" height="12" viewBox="0 0 24 24" width="12">
       <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
       <path d="M12 7v5l3 2" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
     </svg>
-    {{ readingTime.minutes.value }} min read
+    {{ pageMeta.minutes.value }} min read
   </p>
 </template>
 
 <style scoped>
+.page-description {
+  margin: 7px 0 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.45;
+  max-width: 62ch;
+}
+
 .reading-time {
   display: flex;
   align-items: center;

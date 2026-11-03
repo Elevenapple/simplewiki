@@ -11,9 +11,11 @@ const props = defineProps({
 
 const data = toRef(props, 'data')
 
-// ProseH1 renders the note, but only for the page title: several pages use further
-// h1s lower down, so the title is identified by the id of the first one.
-provide('readingTime', {
+// ProseH1 renders the description and reading time, but only under the page title:
+// several pages use further h1s lower down, so the title is identified by the id of
+// the first one.
+provide('pageMeta', {
+    description: computed(() => (data.value?.description ?? '').trim()),
     minutes: computed(() => data.value ? readingMinutes(data.value.body) : 0),
     titleId: computed(() => data.value ? firstHeadingId(data.value.body) : null),
 })
