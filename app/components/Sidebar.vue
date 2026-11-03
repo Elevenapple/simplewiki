@@ -1,14 +1,32 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { watch } from 'vue'
+import { onBeforeUnmount, watch } from 'vue'
 
 const route = useRoute()
 
-defineProps<{
+const props = defineProps<{
     isOpen: boolean
 }>()
 
 const emit = defineEmits(['close'])
+
+// Escape closes the drawer. The listener is only attached while it is open, so it
+// never intercepts Escape elsewhere, such as closing the search results.
+function onKeydown(e: KeyboardEvent) {
+    if (e.key !== 'Escape' || e.defaultPrevented) return
+    e.preventDefault()
+    emit('close')
+}
+
+watch(() => props.isOpen, (open) => {
+    if (!import.meta.client) return
+    if (open) window.addEventListener('keydown', onKeydown)
+    else window.removeEventListener('keydown', onKeydown)
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+    if (import.meta.client) window.removeEventListener('keydown', onKeydown)
+})
 
 const { data: navigation } = await useAsyncData('navigation', async () => {
     const nav = await queryCollectionNavigation('content')
@@ -74,14 +92,14 @@ function isGroupOpen(path: string) {
         </Transition>
 
         <Transition name="slide">
-            <div v-if="isOpen"
+            <div v-if="isOpen" role="dialog" aria-modal="true" aria-label="Navigation"
                 class="bg-sidebar-bg h-dvh z-900 w-5/6 fixed top-0 left-0 border-r border-border shadow-2xl flex flex-col">
 
                 <div class="flex items-center justify-between px-3 py-2 border-b border-border-light shrink-0">
                     <h3 class="text-[11.5px] uppercase tracking-[0.02em] text-text-muted font-bold">
                         Navigation
                     </h3>
-                    <button @click="emit('close')" class="text-text-muted hover:text-text p-1">
+                    <button @click="emit('close')" class="text-text-muted hover:text-text p-1" aria-label="Close navigation">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
                                 d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
