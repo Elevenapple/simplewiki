@@ -42,6 +42,7 @@ defineOgImage('WikiPage', {
 </script>
 
 <template>
+    <ReadingProgress />
     <SkipLink />
     <Header @open-sidebar="isSidebarOpen = true" />
     <Trace :title="data?.title ?? 'Page not found'" />
