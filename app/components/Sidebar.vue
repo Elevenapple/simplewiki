@@ -48,12 +48,44 @@ watch(() => route.path, () => {
     emit('close')
 })
 
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+
+const COLLAPSED_KEY = 'simplewiki-sidebar-collapsed'
 
 const collapsedGroups = ref<Record<string, boolean>>({})
 
+// Restored after hydration rather than during setup: the server has no access to
+// localStorage, so reading it earlier would make the first client render disagree
+// with the markup it is hydrating.
+onMounted(() => {
+    try {
+        const saved = localStorage.getItem(COLLAPSED_KEY)
+        if (!saved) return
+        const paths = JSON.parse(saved)
+        if (!Array.isArray(paths)) return
+        collapsedGroups.value = Object.fromEntries(
+            paths.filter((p: unknown) => typeof p === 'string').map((p: string) => [p, true]),
+        )
+    } catch {
+        // Unreadable or malformed entry, or storage blocked; start with everything open.
+    }
+})
+
+function persist() {
+    try {
+        // Only the collapsed paths are stored, so the entry stays small and does not
+        // accumulate groups that have since been expanded or renamed.
+        const collapsed = Object.keys(collapsedGroups.value).filter(p => collapsedGroups.value[p])
+        if (collapsed.length) localStorage.setItem(COLLAPSED_KEY, JSON.stringify(collapsed))
+        else localStorage.removeItem(COLLAPSED_KEY)
+    } catch {
+        // Storage can be full or blocked; the sidebar still works for this visit.
+    }
+}
+
 function toggleGroup(path: string) {
     collapsedGroups.value[path] = !collapsedGroups.value[path]
+    persist()
 }
 
 function isGroupOpen(path: string) {
