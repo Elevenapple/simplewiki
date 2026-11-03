@@ -32,13 +32,19 @@ const showReadingTime = computed(() => isPageTitle.value && pageMeta!.minutes.va
     {{ description }}
   </p>
 
-  <p v-if="showReadingTime" class="reading-time">
-    <svg aria-hidden="true" fill="none" height="12" viewBox="0 0 24 24" width="12">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
-      <path d="M12 7v5l3 2" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
-    </svg>
-    {{ pageMeta.minutes.value }} min read
-  </p>
+  <div v-if="isPageTitle" class="page-meta">
+    <span v-if="showReadingTime" class="reading-time">
+      <svg aria-hidden="true" fill="none" height="12" viewBox="0 0 24 24" width="12">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+        <path d="M12 7v5l3 2" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
+      </svg>
+      {{ pageMeta.minutes.value }} min read
+    </span>
+
+    <span v-if="showReadingTime" aria-hidden="true" class="page-meta-sep">·</span>
+
+    <CopyPageLink />
+  </div>
 </template>
 
 <style scoped>
@@ -51,13 +57,32 @@ const showReadingTime = computed(() => isPageTitle.value && pageMeta!.minutes.va
   max-width: 62ch;
 }
 
-.reading-time {
+.page-meta {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 5px;
+}
+
+.reading-time {
+  display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin: 5px 0 0;
   color: var(--color-text-muted);
   font-family: var(--font-body);
   font-size: 12px;
+}
+
+.page-meta-sep {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+@media print {
+  .page-meta {
+    margin-top: 4px;
+  }
 }
 </style>
