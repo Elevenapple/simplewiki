@@ -66,7 +66,11 @@ function moveActive(delta: number) {
 
 function onSearchKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape') {
+        // Clear the query as well as closing the list; the watcher then empties the
+        // results, so a later Down key starts fresh instead of reopening stale matches.
         isDropdownOpen.value = false
+        searchQuery.value = ''
+        activeIndex.value = -1
         return
     }
 
