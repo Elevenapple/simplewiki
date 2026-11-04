@@ -28,9 +28,14 @@ const headingIds = computed<string[]>(() => {
 
 const activeId = ref<string>('')
 
-// Headings sit this far below the top edge before they count as "current", so a
-// heading you just jumped to is highlighted rather than the one above it.
-const OFFSET = 96
+// Headings count as "current" once they pass this far below the top edge: the
+// sticky header's height plus the anchor scroll margin plus a little slack, so a
+// heading you just jumped to is the one highlighted rather than the one above it.
+function headerHeight(): number {
+    const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height'))
+    return Number.isFinite(v) ? v : 56
+}
+const offset = () => headerHeight() + 24 + 16
 
 function updateActive() {
     const ids = headingIds.value
@@ -45,7 +50,7 @@ function updateActive() {
     for (const id of ids) {
         const el = document.getElementById(id)
         if (!el) continue
-        if (el.getBoundingClientRect().top - OFFSET <= 0) current = id
+        if (el.getBoundingClientRect().top - offset() <= 0) current = id
         else break
     }
     activeId.value = current
@@ -92,7 +97,7 @@ function isActiveGroup(link: any): boolean {
 </script>
 
 <template>
-    <div class="sm:ml-4 sm:mt-4 sm:my-0 pt-2 px-3.5 pb-2.5 bg-toc-bg border border-border rounded-xs text-13 [counter-reset:toc-main] sticky top-4 my-8 print:hidden"
+    <div class="sm:ml-4 sm:mt-4 sm:my-0 pt-2 px-3.5 pb-2.5 bg-toc-bg border border-border rounded-xs text-13 [counter-reset:toc-main] sticky top-[calc(var(--header-height)+1rem)] my-8 print:hidden"
         v-if="tocLinks.length && !isMobile">
         <div class="font-bold mx-0 mt-0 mb-1.5 pb-1.25 border-b border-border-light tracking-[0.01em] text-text!">
             Table of Contents

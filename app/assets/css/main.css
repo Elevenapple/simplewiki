@@ -23,6 +23,8 @@
 }
 
 :root{
+    /* Height of the sticky header; Header.vue measures and overrides this. */
+    --header-height: 56px;
     --page-bg: #f6f6f6;
     --content-bg: #ffffff;
     --sidebar-bg: #f8f9fa;
@@ -105,13 +107,13 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--border);
 }
-/* Anchor targets stop short of the viewport edge so a heading jumped to from the
-   table of contents (or a shared #link) sits fully in view with breathing room,
-   rather than flush against the top. Keep this below the ToC tracker's OFFSET in
-   ToC.vue so the heading you land on is also the one highlighted. */
+/* Anchor targets stop below the sticky header, with breathing room, so a heading
+   jumped to from the table of contents (or a shared #link) is fully in view rather
+   than hidden under the header. The ToC tracker in ToC.vue uses the same header
+   height plus this margin so the heading you land on is also the one highlighted. */
 .renderer :is(h1, h2, h3, h4, h5, h6)[id],
 .renderer [id]:target {
-  scroll-margin-top: 24px;
+  scroll-margin-top: calc(var(--header-height) + 24px);
 }
 
 /* Search-term highlight on the landing page (see Content.vue). */

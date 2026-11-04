@@ -132,6 +132,25 @@ if (firstGroup) {
 }
 
 const searchInput = ref<HTMLInputElement | null>(null)
+
+// The header is sticky, so everything that scrolls to a position (anchor jumps,
+// sticky sidebars, the ToC tracker) needs its height. It differs between the
+// stacked phone layout and the single-row desktop one, so it is measured and
+// published as --header-height rather than hard-coded.
+const headerRef = ref<HTMLElement | null>(null)
+let headerObserver: ResizeObserver | undefined
+
+onMounted(() => {
+    const el = headerRef.value
+    if (!el) return
+    const publish = () =>
+        document.documentElement.style.setProperty('--header-height', `${Math.round(el.getBoundingClientRect().height)}px`)
+    publish()
+    headerObserver = new ResizeObserver(publish)
+    headerObserver.observe(el)
+})
+
+onBeforeUnmount(() => headerObserver?.disconnect())
 const isSearchFocused = ref(false)
 
 // The "/" badge only makes sense while the box is idle and ready to receive the
@@ -177,7 +196,7 @@ const isTheme = (theme: Theme) => colorMode.preference === theme
 </script>
 
 <template>
-    <header class="bg-content-bg border-b border-border relative z-50 print:hidden">
+    <header ref="headerRef" class="bg-content-bg border-b border-border sticky top-0 z-50 print:hidden">
         <div
             class="max-w-275 mx-auto pt-2.25 pb-2 px-5 flex flex-col sm:flex-row sm:items-center justify-between sm:gap-6 flex-wrap w-full">
             <div class="flex items-baseline gap-2 justify-center sm:justify-start">

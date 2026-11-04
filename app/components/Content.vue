@@ -66,7 +66,7 @@ provide('pageMeta', {
 
 <template>
     <div id="main-content" tabindex="-1"
-        class="bg-content-bg pt-4.5 px-6.5 pb-10 border-r border-l border-border min-h-screen min-w-0 scroll-mt-4 focus:outline-none print:border-0 print:px-0 print:pt-0 print:min-h-0">
+        class="bg-content-bg pt-4.5 px-6.5 pb-10 border-r border-l border-border min-h-screen min-w-0 scroll-mt-[calc(var(--header-height)+1rem)] focus:outline-none print:border-0 print:px-0 print:pt-0 print:min-h-0">
         <div v-if="data && highlightQuery.length" data-no-highlight
             class="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xs border border-border-light bg-header-band px-3 py-1.5 text-[12px] text-text-muted print:hidden">
             <span>
