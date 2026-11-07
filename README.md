@@ -10,8 +10,6 @@
   <p></p>
   <div align="center">
       <img src="https://shieldcn.dev/group/github/stars/Elevenapple/simplewiki+github/forks/Elevenapple/simplewiki+github/license/Elevenapple/simplewiki?variant=ghost&theme=zinc">
-      <p></p>
-      <img src="https://shieldcn.dev/flag/de.svg?theme=zinc">
   </div>
   <br>
 </div>
